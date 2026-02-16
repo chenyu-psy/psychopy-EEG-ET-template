@@ -184,6 +184,10 @@ Notes:
 
 ## Acknowledgment
 
-Major functions in this template build on contributions from:
+The following files were edited in this project and adapted from code contributed by **Colin Quirk (cquirk@uchicago.edu)**:
 
-**Colin Quirk (cquirk@uchicago.edu)**.
+- `src/utils/eyelink_display.py`
+- `src/utils/eyelinker.py`
+- `templates/tracker_template.py`
+
+Special thanks to Colin Quirk for these contributions.
