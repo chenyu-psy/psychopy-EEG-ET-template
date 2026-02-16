@@ -1,4 +1,4 @@
-## trackNeuAct Experiment Template
+## psychopy-EEG-ET-template
 
 A PsychoPy-based template for building **EEG experiments** with synchronized behavioral tasks and eye-movement monitoring.
 
@@ -8,23 +8,36 @@ This repository is designed for **script-style usage** (not package-only usage):
 
 Use `uv` as the recommended way to initialize and run this project.
 
-1. Install `uv` (if needed):
+1. Install `uv` (if needed). Common options:
 
 ```bash
+# macOS/Linux (official installer)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# macOS (Homebrew)
+brew install uv
+
+# Any platform with pipx
+pipx install uv
+
+# Any platform with pip
+pip install uv
+
+# Windows PowerShell (official installer):
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
 2. Create/sync the project environment from `pyproject.toml` + `uv.lock`:
 
 ```bash
-cd /Users/chenyu/GitHub/trackNeuAct
+cd /Users/chenyu/GitHub/psychopy-EEG-ET-template
 uv sync
 ```
 
 3. Run the experiment entry script:
 
 ```bash
-uv run python /Users/chenyu/GitHub/trackNeuAct/src/experiment_1/main.py
+uv run python /Users/chenyu/GitHub/psychopy-EEG-ET-template/src/experiment_1/main.py
 ```
 
 ## Project Structure
@@ -94,7 +107,7 @@ Output directory. Subject-level files are saved automatically under:
 If you prefer manual venv usage (instead of `uv`):
 
 ```bash
-/Users/chenyu/GitHub/trackNeuAct/.venv/bin/python -m pip install -e .
+/Users/chenyu/GitHub/psychopy-EEG-ET-template/.venv/bin/python -m pip install -e .
 ```
 
 ## How To Run
@@ -102,13 +115,13 @@ If you prefer manual venv usage (instead of `uv`):
 Recommended (`uv`):
 
 ```bash
-uv run python /Users/chenyu/GitHub/trackNeuAct/src/experiment_1/main.py
+uv run python /Users/chenyu/GitHub/psychopy-EEG-ET-template/src/experiment_1/main.py
 ```
 
 Alternative (existing venv):
 
 ```bash
-/Users/chenyu/GitHub/trackNeuAct/.venv/bin/python /Users/chenyu/GitHub/trackNeuAct/src/experiment_1/main.py
+/Users/chenyu/GitHub/psychopy-EEG-ET-template/.venv/bin/python /Users/chenyu/GitHub/psychopy-EEG-ET-template/src/experiment_1/main.py
 ```
 
 ## Configure an Experiment
