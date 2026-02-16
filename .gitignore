@@ -1,0 +1,7 @@
+*.egg-info/
+__pycache__/
+.venv/
+.DS_Store
+.vscode/
+data/
+.psychopy3/

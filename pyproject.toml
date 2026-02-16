@@ -1,0 +1,17 @@
+[project]
+name = "track-neu-act"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Chenyu", email = "57704488+chenyu-psy@users.noreply.github.com" }
+]
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "pillow>=11.3.0",
+    "psychopy",
+    "pylink>=0.3.3",
+    "python-slugify>=8.0.4",
+    "requests>=2.32.5",
+    "tqdm>=4.67.3",
+]
