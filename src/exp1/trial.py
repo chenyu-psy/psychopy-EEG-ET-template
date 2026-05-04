@@ -1,4 +1,4 @@
-"""Trial-level runtime for Experiment 1."""
+"""Trial-level runtime for exp1."""
 
 from __future__ import annotations
 
@@ -14,6 +14,14 @@ class TrialRunner:
     """Run one trial using timing/code/response/color settings from `exp`."""
 
     def __init__(self, exp):
+        """Store experiment settings needed by trial-level drawing and logging.
+
+        Parameters
+        ----------
+        exp : Experiment1
+            Active experiment object with timing, trigger code, response, and
+            color settings attached during `Experiment1.__init__()`.
+        """
         self.exp = exp
         self.timing = getattr(exp, "timing", TIMING)
         self.code = getattr(exp, "code", CODE)

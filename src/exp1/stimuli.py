@@ -1,4 +1,4 @@
-"""Stimulus constructors for Experiment 1."""
+"""Stimulus constructors for exp1."""
 
 from psychopy import visual
 

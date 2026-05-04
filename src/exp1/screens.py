@@ -1,9 +1,16 @@
-"""Screen-level presentation helpers for Experiment 1."""
+"""Screen-level presentation helpers for exp1."""
+
+
+INSTRUCTIONS = [
+    "Welcome to exp1.",
+    "Press space to continue.",
+]
 
 
 def show_instructions(exp) -> None:
     """Display experiment instructions."""
-    exp.instruct()
+    for instruction in INSTRUCTIONS:
+        exp.display_text_screen(instruction, keyList=["space"])
 
 
 def show_block_start(exp, block_label: str) -> None:

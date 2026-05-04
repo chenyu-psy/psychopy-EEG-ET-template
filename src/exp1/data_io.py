@@ -1,4 +1,4 @@
-"""Data I/O helpers for Experiment 1."""
+"""Data I/O helpers for exp1."""
 
 from __future__ import annotations
 

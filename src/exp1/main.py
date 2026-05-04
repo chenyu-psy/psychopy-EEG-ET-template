@@ -1,4 +1,4 @@
-"""Main entrypoint for Experiment 1.
+"""Main entrypoint for exp1.
 
 Subclass `BaseTrackerExp` and implement experiment-specific logic here.
 """
@@ -8,9 +8,9 @@ from random import choice
 import pandas as pd
 from _paths import PROJECT_ROOT # absolute path to project root directory
 
-from templates import BaseTrackerExp, EyeMovementError
+from templates import BaseTrackerExp
 from utils import assign_conditions
-from data_io import append_trial, init_data_file
+from data_io import init_data_file
 from screens import show_block_start, show_break, show_end, show_instructions
 from settings import (
     CODE,
@@ -25,6 +25,7 @@ from settings import (
     TIMING,
 )
 from trial import TrialRunner
+from trial_queue import run_trials_in_queue
 
 
 def build_trials(n_trials: int, design: dict) -> list[dict]:
@@ -54,16 +55,17 @@ def calc_accuracy(rows: list[dict], correct_key: str) -> float | None:
 
 
 class Experiment1(BaseTrackerExp):
-    """Experiment 1 implementation built on top of BaseTrackerExp."""
+    """exp1 implementation built on top of BaseTrackerExp."""
 
     def __init__(self):
+        """Create the experiment object and attach shared settings.
+
+        The heavy PsychoPy resources are initialized later in `initialize()`,
+        after the participant dialog has selected an output folder.
+        """
         # Base class handles shared PsychoPy/EEG/EyeLink infrastructure.
         super().__init__(
             experiment_name=EXPERIMENT_NAME,
-            instructions=[
-                "Welcome to Experiment 1.",
-                "Press space to continue.",
-            ],
             conditions=["default"],
             keys=RESPONSES.values(),
             monitor_details=MONITOR,
@@ -83,56 +85,6 @@ class Experiment1(BaseTrackerExp):
         self.trials: list[dict] = []
         self._eyetracker_initialized = False
 
-    def _run_trials(self, trials: list[dict]) -> list[dict]:
-        """Run trial list, append CSV rows, and return completed rows."""
-        trial_runner, data_file, data_fields = self._require_runtime()
-        completed_rows: list[dict] = []
-        for trial_def in trials:
-            row = trial_runner.run_trial(trial_def)
-            append_trial(data_file, row, data_fields)
-            completed_rows.append(row)
-        return completed_rows
-
-    def _condition_key(self, trial_def: dict) -> str:
-        """Return condition key used for rejection counting."""
-        return str(trial_def.get("label", "default"))
-
-    def _run_trials_with_replacement(self, trials: list[dict], on_trial_update=None) -> list[dict]:
-        """Run trials and append replacement trials when eye movement is detected."""
-        # `pending` is a mutable queue; rejected trials are cloned and appended.
-        trial_runner, data_file, data_fields = self._require_runtime()
-        pending = [dict(t) for t in trials]
-        completed_rows: list[dict] = []
-        trial_i = 0
-
-        while trial_i < len(pending):
-            trial_def = pending[trial_i]
-            condition_key = self._condition_key(trial_def)
-            if condition_key not in self.rejection_counter:
-                self.rejection_counter[condition_key] = 0
-
-            try:
-                row = trial_runner.run_trial(trial_def)
-            except EyeMovementError as err:
-                # Show immediate gaze-break feedback and schedule same-condition retry.
-                self.display_eyemovement_feedback((err.x, err.y))
-                self.do_rejection(True, condition=condition_key)
-                pending.append(dict(trial_def))
-                # Callback lets caller update progress/denominators for replacements.
-                if on_trial_update is not None:
-                    on_trial_update(None, True)
-                trial_i += 1
-                continue
-
-            append_trial(data_file, row, data_fields)
-            completed_rows.append(row)
-            self.do_rejection(False, condition=condition_key)
-            if on_trial_update is not None:
-                on_trial_update(row, False)
-            trial_i += 1
-
-        return completed_rows
-
     def _require_runtime(self):
         """Return initialized runtime objects needed for trial execution."""
         if self.trial_runner is None or self.data_file is None or self.data_fields is None:
@@ -145,7 +97,7 @@ class Experiment1(BaseTrackerExp):
             return
         self.et_initialize(f"sub{self.sub_num:02d}.edf")
         # Realtime fixation checks are only active after tracker startup.
-        self.do_realtime = self.realtime_eyetrack_enabled
+        self.start_realtime_monitoring()
         self._eyetracker_initialized = True
 
     def initialize(self) -> bool:
@@ -194,7 +146,7 @@ class Experiment1(BaseTrackerExp):
                 "Task familiarization\n\nRead the instructions and try a few trials.\n\nPress space to start.",
                 keyList=["space"],
             )
-            self._run_trials(warmup_trials)
+            run_trials_in_queue(warmup_trials, self)
 
         if eyetrack_warmup_trials and REALTIME_TRACKER:
             self._ensure_eyetracker()
@@ -203,7 +155,7 @@ class Experiment1(BaseTrackerExp):
                 keyList=["space"],
             )
             # Warmup with replacements trains fixation behavior before formal blocks.
-            self._run_trials_with_replacement(eyetrack_warmup_trials)
+            run_trials_in_queue(eyetrack_warmup_trials, self, replace_on_reject=True)
 
         return remaining_practice_trials, experiment_trials
 
@@ -226,12 +178,13 @@ class Experiment1(BaseTrackerExp):
             block_practice = [t for t in practice_trials if t["block_id"] == block_id]
             if block_practice:
                 show_block_start(self, f"Practice Block {block_id}")
-                self._run_trials_with_replacement(block_practice)
+                run_trials_in_queue(block_practice, self, replace_on_reject=True)
 
             show_block_start(self, f"Block {block_id}")
             block_trials = [t for t in experiment_trials if t["block_id"] == block_id]
 
             def on_exp_trial(row, rejected):
+                """Update formal-experiment progress after each trial attempt."""
                 nonlocal exp_done, exp_total, completed_exp_rows
                 if rejected:
                     exp_total += 1
@@ -242,7 +195,12 @@ class Experiment1(BaseTrackerExp):
                     perf = calc_accuracy(completed_exp_rows, self.responses["CORRECT"])
                     show_break(self, exp_done, exp_total, perf)
 
-            completed_block_rows = self._run_trials_with_replacement(block_trials, on_trial_update=on_exp_trial)
+            completed_block_rows = run_trials_in_queue(
+                block_trials,
+                self,
+                replace_on_reject=True,
+                on_trial_update=on_exp_trial,
+            )
 
             acc = calc_accuracy(completed_block_rows, self.responses["CORRECT"])
             print(f"Block {block_id} accuracy: {acc:.1f}%" if acc is not None else f"Block {block_id} accuracy: N/A")

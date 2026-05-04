@@ -1,3 +1,5 @@
+"""Runtime settings for exp1."""
+
 import numpy as np
 
 MONITOR = {
@@ -56,7 +58,7 @@ CODE = {
     "SS4/REL":42
 }
 
-EXPERIMENT_NAME = "experiment_1"
+EXPERIMENT_NAME = "exp1"
 
 TIMING = {
     "ITI": [0.5, 0.8],  # in seconds, duration of inter-trial interval
